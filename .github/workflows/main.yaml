@@ -59,7 +59,7 @@ env:
           "TRADINGOFFICE_ENV_BAR": "BAR"
         }
       }
-    }'
+    }
 
 jobs:
   setup:
