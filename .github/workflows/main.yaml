@@ -118,6 +118,7 @@ jobs:
     strategy:
       matrix:
         project: ${{ fromJson(needs.setup.outputs.deploy_list) }}
+      fail-fast: false
 
     steps:
       - uses: actions/checkout@v4
@@ -126,8 +127,14 @@ jobs:
 
       - name: setup
         run: |
-          set -o pipefail
           echo ${CONFIG} | jq --arg project ${{ matrix.project }} '.[$project]' > ./.tmp_config.json
+
+          echo "BASE_DOMAIN=$(jq -r '.domain' ./.tmp_config.json)
+          echo "S3_BUCKET=$(jq -r '.s3_bucket' ./.tmp_config.json)
+          echo "API_URL=$(jq -r '.api_url' ./.tmp_config.json)
+          for s in $( jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' ./.tmp_config.json ); do
+              echo $s
+          done
 
           echo "BASE_DOMAIN=$(jq -r '.domain' ./.tmp_config.json) >> $GITHUB_OUTPUT
           echo "S3_BUCKET=$(jq -r '.s3_bucket' ./.tmp_config.json) >> $GITHUB_OUTPUT
@@ -135,6 +142,7 @@ jobs:
           for s in $( jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' ./.tmp_config.json ); do
               echo $s >> $GITHUB_OUTPUT
           done
+
 
       - name: check env
         run: |
