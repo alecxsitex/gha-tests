@@ -1,12 +1,13 @@
 name: Deploy PROD
 on:
   workflow_dispatch:
-    projects:
-      description: |
-        List of projects for deploy, devided by comma. 
-        Special value "all" (default) means deploy all projects.
-      required: true
-      default: all
+    inputs:
+      projects:
+        description: |
+          List of projects for deploy, devided by comma. 
+          Special value "all" (default) means deploy all projects.
+        required: true
+        default: all
 
 defaults:
   run:
