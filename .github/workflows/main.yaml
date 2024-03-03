@@ -1,0 +1,90 @@
+name: Deploy PROD
+on:
+  workflow_dispatch:
+    inputs:
+      service_name:
+        required: true
+        default: 'all'
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  CONFIG: |
+    {
+      "backoffice" : {
+        "domain" : "",
+        "s3_bucket": "",
+        "api_url": "",
+        "env" : {}
+      },
+      "business" : {
+        "domain" : "",
+        "s3_bucket": "",
+        "api_url": "",
+        "env" : {}
+      },
+      "checkout" : {
+        "domain" : "",
+        "s3_bucket": "",
+        "api_url": "",
+        "env" : {}
+      },
+      "tradingoffice": {
+        "domain" : "",
+        "s3_bucket": "",
+        "api_url": "",
+        "env" : {}
+      }
+    }
+
+jobs:
+  setup:
+    runs-on: [self-hosted, Linux, X64]
+    outputs:
+      deploy_list: ${{ steps.calc_projects.outputs.deploy_list }}
+    steps:
+      - uses: actions/checkout@v4
+        name: Code checkout
+        id: checkout
+
+      - name: deploy list
+        id: calc_projects
+        run: |
+          declare -a PROJECTS
+          declare -a INPUT_LIST;
+          declare -a DEPLOY_LIST;
+
+          for project in $(echo '${{ env.CONFIG }}' | jq -r 'keys | .[]'); do
+            PROJECTS+=( $project )
+          done
+
+          INPUT_LIST=($(echo "${{ github.event.inputs.service_name }}" | tr ',' '\n'))
+          if [[ "${{ github.event.inputs.service_name }}" == "all" ]]; then
+            INPUT_LIST=${PROJECTS[@]}
+            echo "deploy_list=$(echo ${PROJECTS[@]} | jq -R -c 'split(" ")')" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          for project in ${INPUT_LIST[*]}; do
+            if (echo ${PROJECTS[@]} | tr ' ' '\n' | grep -F -q -x "${project}") then
+                DEPLOY_LIST+=( "${project}" )
+                continue
+            fi
+            echo "[ERROR] Unsupported project \"$project\". See supported projects in \"CONFIG\" env."
+            exit 1
+            break
+          done
+
+          DEPLOY_LIST_JSON=$(echo "deploy_list=$(echo ${DEPLOY_LIST[@]} | jq -R -c 'split(" ")')")
+          echo $DEPLOY_LIST_JSON >> $GITHUB_OUTPUT
+          echo "[DEBUG] Deploy list = ${DEPLOY_LIST_JSON}"
