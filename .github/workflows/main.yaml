@@ -19,7 +19,8 @@ permissions:
   contents: read
 
 env:
-  CONFIG: '{
+  CONFIG: |
+    {
       "backoffice" : {
         "domain" : "backoffice.tld",
         "s3_bucket": "backoffice_bucket",
@@ -76,7 +77,7 @@ jobs:
           declare -a INPUT_LIST;
           declare -a DEPLOY_LIST;
 
-          for project in $(echo $CONFIG | jq -r 'keys | .[]'); do
+          for project in $(echo ${CONFIG} | jq -r 'keys | .[]'); do
             PROJECTS+=( $project )
           done
 
@@ -117,4 +118,4 @@ jobs:
 
       - run:
           echo PROJECT is ${{ matrix.project }}
-          echo Config is $(echo ${{ env.CONFIG }} | jq --arg project ${{ matrix.project }} '.[$project]')
+          echo Config is $(echo ${CONFIG} | jq --arg project ${{ matrix.project }} '.[$project]')
