@@ -119,4 +119,4 @@ jobs:
       - run:
           set -o pipefail
           echo PROJECT is ${{ matrix.project }}
-          echo ${CONFIG} | jq --arg project ${{ matrix.project }} '.[$project]'
+          jq --arg project ${{ matrix.project }} '.[$project]' < ${CONFIG}
