@@ -49,7 +49,7 @@ env:
 
 jobs:
   setup:
-    runs-on: [self-hosted, Linux, X64]
+    runs-on: ["ubuntu-latest"]
     outputs:
       deploy_list: ${{ steps.calc_projects.outputs.deploy_list }}
     steps:
