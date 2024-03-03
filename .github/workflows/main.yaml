@@ -124,7 +124,7 @@ jobs:
         name: Code checkout
         id: checkout
 
-      - run:
+      - run: |
           set -o pipefail
           echo ${CONFIG} > ./.tmp_config.json
-          jq --arg project ${{ matrix.project }} '.[$project]'
+          echo config is: $(jq --arg project ${{ matrix.project }} '.[$project]')
