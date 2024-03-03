@@ -19,8 +19,7 @@ permissions:
   contents: read
 
 env:
-  CONFIG: |
-    {
+  CONFIG: '{
       "backoffice" : {
         "domain" : "backoffice.tld",
         "s3_bucket": "backoffice_bucket",
@@ -57,7 +56,7 @@ env:
           "TRADINGOFFICE_ENV_BAR": "BAR"
         }
       }
-    }
+    }'
 
 jobs:
   setup:
