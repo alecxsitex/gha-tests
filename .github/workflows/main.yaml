@@ -26,8 +26,8 @@ env:
         "s3_bucket": "backoffice_bucket",
         "api_url": "",
         "env" : {
-          BACKOFFICE_ENV_FOO: "FOO",
-          BACKOFFICE_ENV_BAR: "BAR"
+          "BACKOFFICE_ENV_FOO": "FOO",
+          "BACKOFFICE_ENV_BAR": "BAR"
         }
       },
       "business" : {
@@ -35,8 +35,8 @@ env:
         "s3_bucket": "business_bucket",
         "api_url": "business.api.tld",
         "env" : {
-          BUSINESS_ENV_FOO: "FOO",
-          BUSINESS_ENV_BAR: "BAR"
+          "BUSINESS_ENV_FOO": "FOO",
+          "BUSINESS_ENV_BAR": "BAR"
         }
       },
       "checkout" : {
@@ -44,8 +44,8 @@ env:
         "s3_bucket": "checkout_bucket",
         "api_url": "checkout.api.tld",
         "env" : {
-          CHECKOUT_ENV_FOO: "FOO",
-          CHECKOUT_ENV_BAR: "BAR"
+          "CHECKOUT_ENV_FOO": "FOO",
+          "CHECKOUT_ENV_BAR": "BAR"
         }
       },
       "tradingoffice": {
@@ -53,8 +53,8 @@ env:
         "s3_bucket": "tradingoffice_bucket",
         "api_url": "tradingoffice.api.tld",
         "env" : {
-          TRADINGOFFICE_ENV_FOO: "FOO",
-          TRADINGOFFICE_ENV_BAR: "BAR"
+          "TRADINGOFFICE_ENV_FOO": "FOO",
+          "TRADINGOFFICE_ENV_BAR": "BAR"
         }
       }
     }
