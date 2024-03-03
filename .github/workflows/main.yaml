@@ -126,5 +126,5 @@ jobs:
 
       - run:
           set -o pipefail
-          echo PROJECT is ${{ matrix.project }}
-          echo RESULT is $(echo ${CONFIG} | jq --arg project ${{ matrix.project }} '.[$project]')
+          echo ${CONFIG} > ./.tmp_config.json
+          jq --arg project ${{ matrix.project }} '.[$project]'
