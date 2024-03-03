@@ -69,7 +69,8 @@ env:
 
 jobs:
   setup:
-    runs-on: [self-hosted, Linux, X64]
+    # runs-on: [self-hosted, Linux, X64]
+    runs-on: ["ubuntu-latest"]
     outputs:
       deploy_list: ${{ steps.calc_projects.outputs.deploy_list }}
     steps:
@@ -119,7 +120,8 @@ jobs:
           echo "Deploy list = ${{ steps.calc_projects.outputs.deploy_list }}"
 
   deploy:
-    runs-on: [self-hosted, Linux, X64]
+    # runs-on: [self-hosted, Linux, X64]
+    runs-on: ["ubuntu-latest"]
     needs: [setup]
 
     strategy:
