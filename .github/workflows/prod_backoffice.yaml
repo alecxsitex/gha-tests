@@ -1,0 +1,18 @@
+name: prod backoffice
+on:
+  workflow_call:
+
+defaults:
+  run:
+    shell: bash
+
+
+env:
+  PROJECT_NAME: backoffice
+
+jobs:
+  deploy:
+    runs-on: ["ubuntu-latest"]
+    steps:
+      - run:
+          echo PROJECT is ${{ env.PROJECT_NAME }}

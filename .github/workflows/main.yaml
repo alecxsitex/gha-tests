@@ -22,28 +22,40 @@ env:
   CONFIG: |
     {
       "backoffice" : {
-        "domain" : "",
-        "s3_bucket": "",
+        "domain" : "backoffice.tld",
+        "s3_bucket": "backoffice_bucket",
         "api_url": "",
-        "env" : {}
+        "env" : {
+          BACKOFFICE_ENV_FOO: "FOO",
+          BACKOFFICE_ENV_BAR: "BAR"
+        }
       },
       "business" : {
-        "domain" : "",
-        "s3_bucket": "",
-        "api_url": "",
-        "env" : {}
+        "domain" : "business.tld",
+        "s3_bucket": "business_bucket",
+        "api_url": "business.api.tld",
+        "env" : {
+          BUSINESS_ENV_FOO: "FOO",
+          BUSINESS_ENV_BAR: "BAR"
+        }
       },
       "checkout" : {
-        "domain" : "",
-        "s3_bucket": "",
-        "api_url": "",
-        "env" : {}
+        "domain" : "checkout.tld",
+        "s3_bucket": "checkout_bucket",
+        "api_url": "checkout.api.tld",
+        "env" : {
+          CHECKOUT_ENV_FOO: "FOO",
+          CHECKOUT_ENV_BAR: "BAR"
+        }
       },
       "tradingoffice": {
-        "domain" : "",
-        "s3_bucket": "",
-        "api_url": "",
-        "env" : {}
+        "domain" : "tradingoffice.tld",
+        "s3_bucket": "tradingoffice_bucket",
+        "api_url": "tradingoffice.api.tld",
+        "env" : {
+          TRADINGOFFICE_ENV_FOO: "FOO",
+          TRADINGOFFICE_ENV_BAR: "BAR"
+        }
       }
     }
 
@@ -90,3 +102,19 @@ jobs:
       - name: results
         run: |
           echo "Deploy list = ${{ steps.calc_projects.outputs.deploy_list }}"
+
+  deploy:
+    runs-on: ["ubuntu-latest"]
+    needs: ["setup"]
+    strategy:
+      matrix:
+        project: ${{ fromJson(needs.setup.outputs.deploy_list) }}
+
+    steps:
+      - uses: actions/checkout@v4
+        name: Code checkout
+        id: checkout
+
+      - run:
+          echo PROJECT is ${{ matrix.project }}
+          echo Config is $(echo ${{ env.CONFIG }} | jq --arg project ${{ matrix.project }} '.[$project]')
