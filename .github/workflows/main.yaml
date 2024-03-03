@@ -84,6 +84,12 @@ jobs:
           done
 
           INPUT_LIST=($(echo "${{ github.event.inputs.service_name }}" | tr ',' '\n'))
+          if [[ "${{ github.event.inputs.service_name }}" == "" ]]; then
+            INPUT_LIST=${PROJECTS[@]}
+            echo "deploy_list=$(echo ${PROJECTS[@]} | jq -R -c 'split(" ")')" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           if [[ "${{ github.event.inputs.service_name }}" == "all" ]]; then
             INPUT_LIST=${PROJECTS[@]}
             echo "deploy_list=$(echo ${PROJECTS[@]} | jq -R -c 'split(" ")')" >> $GITHUB_OUTPUT
@@ -100,7 +106,7 @@ jobs:
             break
           done
 
-          $(echo "deploy_list=$(echo ${DEPLOY_LIST[@]} | jq -R -c 'split(" ")')") >> $GITHUB_OUTPUT
+          $(echo "deploy_list=$(cat ${DEPLOY_LIST[@]} | jq -R -c 'split(" ")')") >> $GITHUB_OUTPUT
 
       - name: results
         run: |
@@ -121,4 +127,4 @@ jobs:
       - run:
           set -o pipefail
           echo PROJECT is ${{ matrix.project }}
-          jq --arg project ${{ matrix.project }} '.[$project]' < ${CONFIG}
+          echo RESULT is $(echo ${CONFIG} | jq --arg project ${{ matrix.project }} '.[$project]')
