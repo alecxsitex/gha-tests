@@ -85,6 +85,8 @@ jobs:
             break
           done
 
-          DEPLOY_LIST_JSON=$(echo "deploy_list=$(echo ${DEPLOY_LIST[@]} | jq -R -c 'split(" ")')")
-          echo $DEPLOY_LIST_JSON >> $GITHUB_OUTPUT
-          echo "[DEBUG] Deploy list = ${DEPLOY_LIST_JSON}"
+          $(echo "deploy_list=$(echo ${DEPLOY_LIST[@]} | jq -R -c 'split(" ")')") >> $GITHUB_OUTPUT
+
+      - name: results
+        run: |
+          echo "Deploy list = ${{ steps.calc_projects.outputs.deploy_list }}"
