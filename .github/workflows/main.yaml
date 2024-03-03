@@ -1,12 +1,12 @@
 name: Deploy PROD
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
-    inputs:
-      service_name:
-        required: true
-        default: 'all'
+    projects:
+      description: |
+        List of projects for deploy, devided by comma. 
+        Special value "all" (default) means deploy all projects.
+      required: true
+      default: all
 
 defaults:
   run:
@@ -21,49 +21,54 @@ permissions:
   contents: read
 
 env:
+  AWS_REGION: il-central-1
+  AWS_ROLE_ARN: arn:aws:iam::285105474694:role/dev-github-web-domains2pweb
+  NODE_ENV: production
   CONFIG: |
     {
       "backoffice" : {
-        "domain" : "backoffice.tld",
-        "s3_bucket": "backoffice_bucket",
-        "api_url": "backoffice.api.tld",
+        "domain" : "backoffice.web-domain.com",
+        "s3_bucket": "backoffice.web-domain.com",
         "env" : {
-          "BACKOFFICE_ENV_FOO": "FOO",
-          "BACKOFFICE_ENV_BAR": "BAR"
+          "VITE_BO_API_URL_DEV": "https://backoffice.api-domain.codes",
+          "VITE_BO_API_URL_PROD": "https://backoffice.api-domain.com"
         }
       },
       "business" : {
-        "domain" : "business.tld",
-        "s3_bucket": "business_bucket",
-        "api_url": "business.api.tld",
+        "domain" : "businessoffice.web-domain.com",
+        "s3_bucket": "business.web-domain.codes",
         "env" : {
-          "BUSINESS_ENV_FOO": "FOO",
-          "BUSINESS_ENV_BAR": "BAR"
+          "VITE_BUSINESS_API_URL_DEV": "https://businessoffice.api-domain.codes",
+          "VITE_BUSINESS_API_URL_PROD": "https://businessoffice.api-domain.com"
         }
       },
       "checkout" : {
-        "domain" : "checkout.tld",
-        "s3_bucket": "checkout_bucket",
-        "api_url": "checkout.api.tld",
+        "domain" : "",
+        "s3_bucket": "",
+        "api_url": "",
         "env" : {
-          "CHECKOUT_ENV_FOO": "FOO",
-          "CHECKOUT_ENV_BAR": "BAR"
+          "VITE_CHECKOUT_API_URL_DEV": "https://checkout.api-domain.codes",
+          "VITE_CHECKOUT_API_URL_PROD": "https://checkout.api-domain.com",
+          "VITE_CHECKOUT_WEB_URL_DEV": "https://checkout.web-domain.codes",
+          "VITE_CHECKOUT_WEB_URL_PROD": "https://checkout.web-domain.com"
         }
       },
       "tradingoffice": {
-        "domain" : "tradingoffice.tld",
-        "s3_bucket": "tradingoffice_bucket",
-        "api_url": "tradingoffice.api.tld",
+        "domain" : "tradingoffice.web-domain.codes",
+        "s3_bucket": "trading.web-domain.codes",
         "env" : {
-          "TRADINGOFFICE_ENV_FOO": "FOO",
-          "TRADINGOFFICE_ENV_BAR": "BAR"
+          "VITE_TRADING_API_URL_DEV": "https://tradingoffice.api-domain.codes",
+          "VITE_TRADING_API_URL_PROD": "https://tradingoffice.api-domain.com",
+          "VITE_TRADING_WEB_URL_DEV": "https://tradingoffice.web-domain.codes",
+          "VITE_TRADING_WEB_URL_PROD": "https://tradingoffice.web-domain.codes",
+          "VITE_MOBILE_APP_URL": "https://drive.google.com/file/d/<link>/view?usp=drive_link"
         }
       }
     }
 
 jobs:
   setup:
-    runs-on: ["ubuntu-latest"]
+    runs-on: [self-hosted, Linux, X64]
     outputs:
       deploy_list: ${{ steps.calc_projects.outputs.deploy_list }}
     steps:
@@ -83,14 +88,14 @@ jobs:
             PROJECTS+=( $project )
           done
 
-          INPUT_LIST=($(echo "${{ github.event.inputs.service_name }}" | tr ',' '\n'))
-          if [[ "${{ github.event.inputs.service_name }}" == "" ]]; then
+          INPUT_LIST=($(echo "${{ github.event.inputs.projects }}" | tr ',' '\n'))
+          if [[ "${{ github.event.inputs.projects }}" == "" ]]; then
             INPUT_LIST=${PROJECTS[@]}
             echo "deploy_list=$(echo ${PROJECTS[@]} | jq -R -c 'split(" ")')" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          if [[ "${{ github.event.inputs.service_name }}" == "all" ]]; then
+          if [[ "${{ github.event.inputs.projects }}" == "all" ]]; then
             INPUT_LIST=${PROJECTS[@]}
             echo "deploy_list=$(echo ${PROJECTS[@]} | jq -R -c 'split(" ")')" >> $GITHUB_OUTPUT
             exit 0
@@ -113,8 +118,9 @@ jobs:
           echo "Deploy list = ${{ steps.calc_projects.outputs.deploy_list }}"
 
   deploy:
-    runs-on: ["ubuntu-latest"]
-    needs: ["setup"]
+    runs-on: [self-hosted, Linux, X64]
+    needs: [setup]
+
     strategy:
       matrix:
         project: ${{ fromJson(needs.setup.outputs.deploy_list) }}
@@ -127,23 +133,37 @@ jobs:
 
       - name: setup
         run: |
+          set -o pipefail
           echo ${CONFIG} | jq --arg project ${{ matrix.project }} '.[$project]' > ./.tmp_config.json
 
           echo "BASE_DOMAIN=$(jq -r '.domain' ./.tmp_config.json)"
           echo "S3_BUCKET=$(jq -r '.s3_bucket' ./.tmp_config.json)"
-          echo "API_URL=$(jq -r '.api_url' ./.tmp_config.json)"
           for s in $( jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' ./.tmp_config.json ); do
               echo $s
           done
 
           echo "BASE_DOMAIN=$(jq -r '.domain' ./.tmp_config.json)" >> $GITHUB_ENV
           echo "S3_BUCKET=$(jq -r '.s3_bucket' ./.tmp_config.json)" >> $GITHUB_ENV
-          echo "API_URL=$(jq -r '.api_url' ./.tmp_config.json)" >> $GITHUB_ENV
           for s in $( jq -r '.env | to_entries|map("\(.key)=\(.value|tostring)")|.[]' ./.tmp_config.json ); do
               echo $s >> $GITHUB_ENV
           done
 
-
-      - name: check env
+      - name: install dependencies
         run: |
-          env
+          echo node --version
+          echo yarn --version
+          echo yarn install --immutable
+
+      - name: build site
+        run: echo yarn run build:${{ matrix.project }}
+
+      # - name: login to AWS
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   role-to-assume: ${{ env.AWS_ROLE_ARN }}
+      #   aws-region: ${{ env.AWS_REGION }}
+      #   role-duration-seconds: 3600
+      #   role-session-name: GitHub${{ $matrix.project }}prod
+
+      - name: upload site
+        run: |
+          echo aws s3 sync --delete packages/${{ matrix.project }}/dist s3://${S3_BUCKET}
