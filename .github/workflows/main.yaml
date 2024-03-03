@@ -136,11 +136,11 @@ jobs:
               echo $s
           done
 
-          echo "BASE_DOMAIN=$(jq -r '.domain' ./.tmp_config.json)" >> $GITHUB_OUTPUT
-          echo "S3_BUCKET=$(jq -r '.s3_bucket' ./.tmp_config.json)" >> $GITHUB_OUTPUT
-          echo "API_URL=$(jq -r '.api_url' ./.tmp_config.json)" >> $GITHUB_OUTPUT
+          echo "BASE_DOMAIN=$(jq -r '.domain' ./.tmp_config.json)" >> $GITHUB_ENV
+          echo "S3_BUCKET=$(jq -r '.s3_bucket' ./.tmp_config.json)" >> $GITHUB_ENV
+          echo "API_URL=$(jq -r '.api_url' ./.tmp_config.json)" >> $GITHUB_ENV
           for s in $( jq -r 'to_entries|map("\(.key)=\(.value|tostring)")|.[]' ./.tmp_config.json ); do
-              echo $s >> $GITHUB_OUTPUT
+              echo $s >> $GITHUB_ENV
           done
 
 
