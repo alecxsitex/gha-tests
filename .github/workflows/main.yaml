@@ -72,11 +72,12 @@ jobs:
       - name: deploy list
         id: calc_projects
         run: |
+          set -o pipefail
           declare -a PROJECTS
           declare -a INPUT_LIST;
           declare -a DEPLOY_LIST;
 
-          for project in $(echo '${{ env.CONFIG }}' | jq -r 'keys | .[]'); do
+          for project in $(echo $CONFIG | jq -r 'keys | .[]'); do
             PROJECTS+=( $project )
           done
 
